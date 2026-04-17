@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BDM Tracker v2 — Karam Paul</title>
+<style>
+:root{
+  --bg:#0a0a0a;--surface:#111118;--surface2:#1a1a26;--border:#2a2a3a;
+  --teal:#00e5b8;--teal2:#00c49a;--purple:#8b5cf6;--amber:#f59e0b;
+  --red:#ef4444;--green:#22c55e;--blue:#3b82f6;
+  --text:#f0f0f0;--muted:#8888aa;--white:#ffffff;
+  --g-light:rgba(34,197,94,.15);--g-dark:#22c55e;
+  --a-light:rgba(245,158,11,.15);--a-dark:#f59e0b;
+  --r-light:rgba(239,68,68,.15);--r-dark:#ef4444;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Inter',Arial,sans-serif;font-size:13px;min-height:100vh}
+/* NAV */
+.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;gap:0;overflow-x:auto;position:sticky;top:0;z-index:100}
+.nav-brand{font-weight:900;font-size:14px;color:var(--teal);letter-spacing:-0.5px;padding:14px 20px 14px 0;border-right:1px solid var(--border);margin-right:8px;white-space:nowrap}
+.tab{padding:14px 16px;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;white-space:nowrap;font-weight:500;transition:all .2s;font-size:12px}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--teal);border-bottom-color:var(--teal)}
+/* HEADER */
+.page-header{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.page-title{font-size:18px;font-weight:800;color:var(--white);letter-spacing:-0.5px}
+.page-sub{font-size:11px;color:var(--muted);margin-top:3px}
+.btn{padding:8px 16px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-weight:600;transition:all .2s}
+.btn-primary{background:var(--teal);color:#000}
+.btn-primary:hover{background:var(--teal2)}
+.btn-secondary{background:var(--surface2);color:var(--text);border:1px solid var(--border)}
+.btn-secondary:hover{border-color:var(--teal);color:var(--teal)}
+.btn-danger{background:var(--r-light);color:var(--red);border:1px solid var(--red)}
+.btn-sm{padding:5px 10px;font-size:11px;border-radius:6px}
+/* SECTION */
+.section{display:none;padding:20px 24px 40px}
+.section.active{display:block}
+/* DASHBOARD CARDS */
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin:16px 0 24px}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+.card-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.card-value{font-size:26px;font-weight:900;line-height:1}
+.card.teal .card-value{color:var(--teal)}
+.card.purple .card-value{color:var(--purple)}
+.card.green .card-value{color:var(--green)}
+.card.red .card-value{color:var(--red)}
+.card.amber .card-value{color:var(--amber)}
+.card.blue .card-value{color:var(--blue)}
+/* TABLES */
+.table-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border);margin-top:16px}
+table{width:100%;border-collapse:collapse;min-width:600px}
+thead tr{background:var(--surface2)}
+th{padding:10px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;border-bottom:1px solid var(--border)}
+td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:top;font-size:12px}
+tr:last-child td{border-bottom:none}
+tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+tr:hover td{background:rgba(0,229,184,.03)}
+/* BADGES */
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:10px;font-weight:700;white-space:nowrap}
+.badge-green{background:var(--g-light);color:var(--g-dark)}
+.badge-amber{background:var(--a-light);color:var(--a-dark)}
+.badge-red{background:var(--r-light);color:var(--r-dark)}
+.badge-blue{background:rgba(59,130,246,.15);color:var(--blue)}
+.badge-purple{background:rgba(139,92,246,.15);color:var(--purple)}
+.badge-muted{background:rgba(136,136,170,.1);color:var(--muted)}
+.badge-teal{background:rgba(0,229,184,.1);color:var(--teal)}
+/* ACTIONS */
+.actions{display:flex;gap:6px}
+/* SECTION TITLE */
+.section-title{font-size:14px;font-weight:700;color:var(--white);margin:20px 0 6px}
+.section-note{font-size:11px;color:var(--muted);margin-bottom:12px;padding:10px 14px;background:var(--surface);border-left:3px solid var(--teal);border-radius:0 6px 6px 0}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:1000;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--surface);border:1px solid var(--border);border-radius:16px;width:100%;max-width:720px;max-height:90vh;overflow-y:auto}
+.modal-header{padding:20px 24px 0;display:flex;justify-content:space-between;align-items:center}
+.modal-title{font-size:15px;font-weight:800;color:var(--white)}
+.modal-close{background:none;border:none;color:var(--muted);cursor:pointer;font-size:20px;line-height:1}
+.modal-body{padding:20px 24px 24px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-grid.cols-1{grid-template-columns:1fr}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.span2{grid-column:1/-1}
+label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+input,select,textarea{background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;width:100%;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--teal)}
+textarea{resize:vertical;min-height:60px}
+select option{background:var(--surface2)}
+.modal-footer{padding:0 24px 24px;display:flex;gap:10px;justify-content:flex-end}
+/* KPI GRID */
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:16px}
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px}
+.kpi-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:4px}
+.kpi-val{font-size:20px;font-weight:900;color:var(--white)}
+.kpi-sub{font-size:10px;color:var(--muted);margin-top:2px}
+/* PROGRESS BAR */
+.progress{background:var(--surface2);border-radius:4px;height:6px;margin-top:6px}
+.progress-bar{height:6px;border-radius:4px;background:var(--teal);transition:width .3s}
+/* RENEWAL URGENCY */
+.urgent{color:var(--red);font-weight:700}
+.window{color:var(--amber);font-weight:700}
+.early{color:var(--muted)}
+/* CONFIG */
+.config-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin:16px 0 24px}
+.config-card{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:16px}
+.config-label{font-size:10px;color:var(--muted);font-weight:700;text-transform:uppercase;margin-bottom:8px}
+.config-input{width:100%}
+/* TIER DOTS */
+.tier1::before{content:"🔥 "}
+.tier2::before{content:"🟡 "}
+.tier3::before{content:"⚪ "}
+/* EMPTY STATE */
+.empty{text-align:center;padding:48px 24px;color:var(--muted)}
+.empty-icon{font-size:36px;margin-bottom:12px}
+/* SCORE */
+.score-high{color:var(--green);font-weight:700}
+.score-mid{color:var(--amber);font-weight:700}
+.score-low{color:var(--red);font-weight:700}
+/* DASHBOARD STAGE TABLE */
+.dash-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px}
+@media(max-width:768px){.dash-grid{grid-template-columns:1fr}.form-grid{grid-template-columns:1fr}}
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px}
+.panel-title{font-size:12px;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.5px;margin-bottom:14px}
+.stage-row{display:flex;align-items:center;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--border)}
+.stage-row:last-child{border-bottom:none}
+.stage-name{font-size:12px;color:var(--text)}
+.stage-val{font-size:12px;font-weight:700;color:var(--teal)}
+.follow-row{padding:8px 0;border-bottom:1px solid var(--border)}
+.follow-row:last-child{border-bottom:none}
+.follow-acct{font-weight:700;font-size:12px}
+.follow-date{font-size:11px;color:var(--muted)}
+.follow-overdue{color:var(--red)}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand">KP // BDM v2</div>
+  <div class="tab active" onclick="showTab('dashboard')">📊 Dashboard</div>
+  <div class="tab" onclick="showTab('pipeline')">🔥 Pipeline</div>
+  <div class="tab" onclick="showTab('renewals')">🔄 Renewals</div>
+  <div class="tab" onclick="showTab('activity')">📞 Activity Log</div>
+  <div class="tab" onclick="showTab('territory')">🗺️ Territory</div>
+  <div class="tab" onclick="showTab('kpis')">🎯 Weekly KPIs</div>
+  <div class="tab" onclick="showTab('spi')">💰 SPI Tracker</div>
+</nav>
+
+<!-- ══════════════════════════ DASHBOARD ══════════════════════════ -->
+<div id="tab-dashboard" class="section active">
+  <div class="page-header">
+    <div><div class="page-title">Performance Dashboard</div><div class="page-sub">Karam Paul · Business Development Manager · Waste Management NZ</div></div>
+  </div>
+  <div class="cards" id="dash-cards"></div>
+  <div class="dash-grid">
+    <div class="panel"><div class="panel-title">Pipeline by Stage</div><div id="dash-stages"></div></div>
+    <div class="panel"><div class="panel-title">Upcoming Follow-ups</div><div id="dash-followups"></div></div>
+    <div class="panel"><div class="panel-title">Urgent Contract Renewals</div><div id="dash-renewals"></div></div>
+    <div class="panel"><div class="panel-title">Territory Tier Breakdown</div><div id="dash-tiers"></div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════ PIPELINE ══════════════════════════ -->
+<div id="tab-pipeline" class="section">
+  <div class="page-header">
+    <div><div class="page-title">🔥 Pipeline</div><div class="page-sub">Salesforce-aligned · Auto-probability · Waste-specific fields</div></div>
+    <button class="btn btn-primary" onclick="openModal('pipeline')">+ Add Opportunity</button>
+  </div>
+  <div class="section-note">Days Since Contact auto-calculates. Probability auto-sets from SF Stage. Strategy Notes stay personal — never goes into Salesforce.</div>
+  <div class="table-wrap"><table id="pipeline-table"><thead><tr>
+    <th>Account</th><th>Industry</th><th>Provider</th><th>Contract Exp.</th>
+    <th>Service</th><th>Stage</th><th>Prob</th><th>Deal Value</th>
+    <th>Weighted</th><th>Close Date</th><th>Days Since</th><th>Next Step</th><th>Actions</th>
+  </tr></thead><tbody id="pipeline-body"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════════ RENEWALS ══════════════════════════ -->
+<div id="tab-renewals" class="section">
+  <div class="page-header">
+    <div><div class="page-title">🔄 Contract Renewals Radar</div><div class="page-sub">Competitor expiry tracker · Time your approach 4-6 months before expiry</div></div>
+    <button class="btn btn-primary" onclick="openModal('renewals')">+ Add Account</button>
+  </div>
+  <div class="section-note">🔴 Under 90 days = urgent, reach out now. 🟡 90-180 days = in window, start conversations. ⚪ Over 180 days = too early, just research.</div>
+  <div class="table-wrap"><table id="renewals-table"><thead><tr>
+    <th>Account</th><th>Provider</th><th>Contract Value</th><th>Expiry</th>
+    <th>Days Left</th><th>Window</th><th>Contact</th><th>Status</th>
+    <th>Our Proposal</th><th>Notes</th><th>Actions</th>
+  </tr></thead><tbody id="renewals-body"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════════ ACTIVITY LOG ══════════════════════════ -->
+<div id="tab-activity" class="section">
+  <div class="page-header">
+    <div><div class="page-title">📞 Activity Log</div><div class="page-sub">Log here first · Transfer to Salesforce · Your record stays independent</div></div>
+    <button class="btn btn-primary" onclick="openModal('activity')">+ Log Activity</button>
+  </div>
+  <div class="section-note">Log every touchpoint. The SF Logged column keeps you honest about what's actually in Salesforce vs what's just in your head.</div>
+  <div class="table-wrap"><table id="activity-table"><thead><tr>
+    <th>Date</th><th>Account</th><th>Contact</th><th>Type</th><th>Purpose</th>
+    <th>Outcome</th><th>Follow-up</th><th>SF Logged</th><th>Waste Intel</th><th>Actions</th>
+  </tr></thead><tbody id="activity-body"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════════ TERRITORY ══════════════════════════ -->
+<div id="tab-territory" class="section">
+  <div class="page-header">
+    <div><div class="page-title">🗺️ Territory Map</div><div class="page-sub">Priority score = Vol(30%) + Revenue(30%) + Timing(20%) + ESG(10%) + Relationship(10%)</div></div>
+    <button class="btn btn-primary" onclick="openModal('territory')">+ Add Account</button>
+  </div>
+  <div class="section-note">Tier 1 (8+) = work these relentlessly. Tier 2 (6-7) = nurture. Tier 3 (below 6) = low effort until something changes.</div>
+  <div class="table-wrap"><table id="territory-table"><thead><tr>
+    <th>Account</th><th>Industry</th><th>Area</th><th>Est. Value</th>
+    <th>Vol</th><th>Revenue</th><th>Timing</th><th>ESG</th><th>Rel.</th>
+    <th>Score</th><th>Tier</th><th>Status</th><th>Actions</th>
+  </tr></thead><tbody id="territory-body"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════════ WEEKLY KPIs ══════════════════════════ -->
+<div id="tab-kpis" class="section">
+  <div class="page-header">
+    <div><div class="page-title">🎯 Weekly KPIs</div><div class="page-sub">Your activity record · Bring this to every 1-on-1 · SPI negotiation evidence</div></div>
+    <button class="btn btn-primary" onclick="openModal('kpis')">+ Log Week</button>
+  </div>
+  <div class="kpi-grid" id="kpi-summary"></div>
+  <div class="table-wrap"><table id="kpis-table"><thead><tr>
+    <th>Week</th><th>Calls T</th><th>Calls A</th><th>Meets T</th><th>Meets A</th>
+    <th>Audits</th><th>Proposals</th><th>Signed</th><th>Revenue</th><th>Attainment</th><th>Actions</th>
+  </tr></thead><tbody id="kpis-body"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════════ SPI TRACKER ══════════════════════════ -->
+<div id="tab-spi" class="section">
+  <div class="page-header">
+    <div><div class="page-title">💰 SPI Performance Tracker</div><div class="page-sub">Walk in with your own numbers — not theirs · Base: $85,000 · SPI activates Month 7</div></div>
+  </div>
+  <div class="config-grid">
+    <div class="config-card"><div class="config-label">Base Salary (Annual)</div><input class="config-input" id="cfg-base" type="number" value="85000" oninput="renderSPI()"></div>
+    <div class="config-card"><div class="config-label">Monthly Revenue Target ($)</div><input class="config-input" id="cfg-monthly" type="number" value="0" oninput="renderSPI()"></div>
+    <div class="config-card"><div class="config-label">SPI % of Base (estimate)</div><input class="config-input" id="cfg-spi-pct" type="number" value="15" oninput="renderSPI()"></div>
+    <div class="config-card"><div class="config-label">Probation End Date</div><input class="config-input" id="cfg-probation" type="date" value="2026-08-05" oninput="renderSPI()"></div>
+  </div>
+  <div class="table-wrap"><table id="spi-table"><thead><tr>
+    <th>Month</th><th>Target</th><th>Actual Revenue</th><th>Variance</th>
+    <th>Attainment</th><th>Deals</th><th>Pipeline EOm</th><th>Coverage Ratio</th><th>Running Total</th>
+  </tr></thead><tbody id="spi-body"></tbody></table></div>
+</div>
+
+<!-- ══════════════════════════ MODALS ══════════════════════════ -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+<div class="modal" id="modal-box">
+  <div class="modal-header">
+    <div class="modal-title" id="modal-title">Add Entry</div>
+    <button class="modal-close" onclick="closeModal()">×</button>
+  </div>
+  <div class="modal-body" id="modal-body"></div>
+  <div class="modal-footer">
+    <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+    <button class="btn btn-primary" id="modal-save" onclick="saveEntry()">Save</button>
+  </div>
+</div>
+</div>
+
+<script>
+// ── DATA STORE ─────────────────────────────────────────────────────────────
+const KEYS={pipeline:'bdm_pipeline',renewals:'bdm_renewals',activity:'bdm_activity',territory:'bdm_territory',kpis:'bdm_kpis',spi:'bdm_spi'};
+let state={pipeline:[],renewals:[],activity:[],territory:[],kpis:[],spi:[]};
+let editMode=null,editId=null,currentModal=null;
+
+const SF_STAGES=["Prospecting","Qualification","Needs Analysis","Value Proposition","Proposal/Price Quote","Negotiation/Review","Closed Won","Closed Lost"];
+const STAGE_PROB={"Prospecting":10,"Qualification":20,"Needs Analysis":40,"Value Proposition":60,"Proposal/Price Quote":70,"Negotiation/Review":85,"Closed Won":100,"Closed Lost":0};
+const PROVIDERS=["Veolia","Cleanaway","EnviroWaste","Waste Management NZ","RecycleSmart","Smart Environmental","In-house","Unknown"];
+const SERVICES=["General Waste","Recycling","Organics","Hazardous","E-Waste","Mixed Recyclables","Confidential Paper","Construction Waste"];
+const INDUSTRIES=["Construction","Manufacturing","Food & Beverage","Retail","Healthcare","Hospitality","Logistics/Transport","Education","Government","Energy/Utilities","Telecoms","FMCG"];
+const LEAD_SOURCES=["Cold Call","LinkedIn","Referral","Event/Expo","Email Campaign","Walk-in","Existing Client","Web Enquiry"];
+const ACT_TYPES=["Cold Call","Warm Call","Email","Meeting - In Person","Meeting - Virtual","Site Visit","Waste Audit","Proposal Sent","Follow-Up Call","LinkedIn Message","Contract Discussion","Internal Handover"];
+const STATUSES_R=["Not Contacted","Researching","Contacted","Meeting Booked","In Conversation","Proposal Sent","Negotiation","Closed Won","Closed Lost"];
+const STATUSES_T=["Not Contacted","Researching","Contacted","Meeting Booked","In Pipeline","Closed Won","Closed Lost","Dormant"];
+const SPI_MONTHS=["May 2026","Jun 2026","Jul 2026","Aug 2026","Sep 2026","Oct 2026","Nov 2026","Dec 2026","Jan 2027","Feb 2027","Mar 2027","Apr 2027"];
+
+// ── LOAD / SAVE ────────────────────────────────────────────────────────────
+function load(){
+  Object.keys(KEYS).forEach(k=>{
+    try{const d=localStorage.getItem(KEYS[k]);if(d)state[k]=JSON.parse(d);}catch(e){}
+  });
+  if(!state.spi.length){
+    state.spi=SPI_MONTHS.map(m=>({id:uid(),month:m,actual:0,deals:0,pipeline:0}));
+    save('spi');
+  }
+  if(!state.pipeline.length) loadSampleData();
+}
+function save(k){localStorage.setItem(KEYS[k],JSON.stringify(state[k]));}
+function uid(){return Date.now()+Math.random().toString(36).slice(2,7);}
+
+// ── SAMPLE DATA ────────────────────────────────────────────────────────────
+function loadSampleData(){
+  state.pipeline=[
+    {id:uid(),account:"Auckland Transport",contact:"Fleet Manager",contactTitle:"Infrastructure Mgr",phone:"09-379-0000",email:"ops@at.govt.nz",industry:"Logistics/Transport",leadSource:"Cold Call",provider:"Veolia",contractExpiry:"2026-09-30",service:"General Waste",sites:8,wasteVol:420,stage:"Needs Analysis",closeDate:"2026-07-15",dealValue:95000,nextStep:"Submit proposal",nextAction:"2026-04-22",lastContact:"2026-04-15",strategyNotes:"Strong budget — 8 depots, multi-site angle"},
+    {id:uid(),account:"Foodstuffs NZ",contact:"Facilities Mgr",contactTitle:"Regional Ops",phone:"09-621-0000",email:"fac@foodstuffs.co.nz",industry:"Food & Beverage",leadSource:"Referral",provider:"EnviroWaste",contractExpiry:"2026-06-30",service:"Organics",sites:12,wasteVol:1200,stage:"Value Proposition",closeDate:"2026-06-15",dealValue:115000,nextStep:"Send ESG diversion report",nextAction:"2026-04-19",lastContact:"2026-04-14",strategyNotes:"High organics — board-level ESG KPI"},
+    {id:uid(),account:"Lion Breweries",contact:"Ops Director",contactTitle:"Plant Manager",phone:"09-302-0000",email:"ops@lion.co.nz",industry:"Food & Beverage",leadSource:"Referral",provider:"Waste Management NZ",contractExpiry:"2026-10-31",service:"Recycling",sites:4,wasteVol:340,stage:"Negotiation/Review",closeDate:"2026-05-30",dealValue:54000,nextStep:"Revised pricing + SLA",nextAction:"2026-04-18",lastContact:"2026-04-16",strategyNotes:"95% diversion SLA is key ask"},
+    {id:uid(),account:"Fulton Hogan",contact:"H&S Manager",contactTitle:"GM Civil",phone:"09-571-0000",email:"hs@fultonhogan.co.nz",industry:"Construction",leadSource:"Referral",provider:"Smart Environmental",contractExpiry:"2026-11-30",service:"Construction Waste",sites:9,wasteVol:1800,stage:"Qualification",closeDate:"2026-08-31",dealValue:130000,nextStep:"Discovery call — compliance angle",nextAction:"2026-04-21",lastContact:"2026-04-12",strategyNotes:"C&D compliance is main lever"},
+    {id:uid(),account:"Ports of Auckland",contact:"Site Manager",contactTitle:"Ops Director",phone:"09-348-0000",email:"ops@poal.co.nz",industry:"Logistics/Transport",leadSource:"Cold Call",provider:"Cleanaway",contractExpiry:"2026-08-31",service:"Hazardous",sites:7,wasteVol:1100,stage:"Prospecting",closeDate:"2026-10-31",dealValue:95000,nextStep:"Research hazardous compliance req",nextAction:"2026-04-23",lastContact:"2026-04-10",strategyNotes:"Hazardous compliance = key differentiator"},
+  ];
+  state.renewals=[
+    {id:uid(),account:"Auckland Transport",provider:"Veolia",value:95000,start:"2023-10-01",expiry:"2026-09-30",contact:"Fleet Manager",status:"Meeting Booked",ourProposal:95000,notes:"Fleet consolidation — multi-site bundle"},
+    {id:uid(),account:"Foodstuffs NZ",provider:"EnviroWaste",value:115000,start:"2024-07-01",expiry:"2026-06-30",contact:"Facilities Mgr",status:"In Conversation",ourProposal:115000,notes:"Strong ESG angle — diversion rate story"},
+    {id:uid(),account:"Ports of Auckland",provider:"Cleanaway",value:95000,start:"2023-09-01",expiry:"2026-08-31",contact:"Site Manager",status:"Contacted",ourProposal:90000,notes:"Hazardous compliance is their pain"},
+    {id:uid(),account:"Lion Breweries",provider:"Waste Management NZ",value:54000,start:"2023-11-01",expiry:"2026-10-31",contact:"Ops Director",status:"Negotiation",ourProposal:58000,notes:"Already negotiating — push expansion"},
+    {id:uid(),account:"Fulton Hogan",provider:"Smart Environmental",value:130000,start:"2023-12-01",expiry:"2026-11-30",contact:"H&S Manager",status:"Contacted",ourProposal:125000,notes:"C&D compliance — use it"},
+    {id:uid(),account:"NZ Steel Ltd",provider:"Cleanaway",value:72000,start:"2024-01-01",expiry:"2026-12-31",contact:"Procurement Lead",status:"Researching",ourProposal:75000,notes:"High volume recyclables"},
+  ];
+  state.territory=[
+    {id:uid(),account:"Auckland Transport",industry:"Logistics/Transport",area:"CBD",type:"Enterprise",estValue:95000,vol:9,revenue:9,timing:8,esg:7,rel:6,status:"Contacted"},
+    {id:uid(),account:"Foodstuffs NZ",industry:"Food & Beverage",area:"Mt Wellington",type:"Enterprise",estValue:115000,vol:10,revenue:9,timing:9,esg:9,rel:6,status:"In Pipeline"},
+    {id:uid(),account:"Fulton Hogan",industry:"Construction",area:"East Tāmaki",type:"Enterprise",estValue:130000,vol:10,revenue:9,timing:7,esg:6,rel:5,status:"Contacted"},
+    {id:uid(),account:"Ports of Auckland",industry:"Logistics/Transport",area:"Waitematā",type:"Enterprise",estValue:95000,vol:10,revenue:9,timing:8,esg:6,rel:4,status:"Researching"},
+    {id:uid(),account:"NZ Steel Ltd",industry:"Manufacturing",area:"Otāhuhu",type:"Enterprise",estValue:72000,vol:10,revenue:8,timing:7,esg:6,rel:5,status:"Researching"},
+    {id:uid(),account:"Lion Breweries",industry:"Food & Beverage",area:"Newmarket",type:"Enterprise",estValue:54000,vol:7,revenue:7,timing:8,esg:8,rel:9,status:"In Pipeline"},
+    {id:uid(),account:"Auckland DHB",industry:"Healthcare",area:"Grafton",type:"Government",estValue:88000,vol:8,revenue:8,timing:5,esg:7,rel:3,status:"Not Contacted"},
+    {id:uid(),account:"Fletcher Building",industry:"Construction",area:"Penrose",type:"Enterprise",estValue:61000,vol:8,revenue:7,timing:6,esg:5,rel:7,status:"In Pipeline"},
+  ];
+  state.activity=[
+    {id:uid(),date:"2026-04-16",account:"Auckland Transport",contact:"Fleet Manager",type:"Cold Call",purpose:"Initial outreach re: contract expiry Sep 26",outcome:"Interested — wants proposal",followup:"2026-04-22",sfLogged:"Yes",stageImpact:"Prospecting → Qualification",intel:"3x 10T bins, mixed recycling separate",notes:"Strong buying signal"},
+    {id:uid(),date:"2026-04-14",account:"Foodstuffs NZ",contact:"Facilities Mgr",type:"Site Visit",purpose:"Waste audit — 3 Auckland stores",outcome:"12T/wk organic waste not diverted",followup:"2026-04-19",sfLogged:"Yes",stageImpact:"Qualification → Value Proposition",intel:"High organics — ESG is board KPI",notes:"Send diversion proposal"},
+    {id:uid(),date:"2026-04-16",account:"Lion Breweries",contact:"Ops Director",type:"Meeting - Virtual",purpose:"Contract terms review",outcome:"Minor price pushback",followup:"2026-04-18",sfLogged:"Yes",stageImpact:"Needs Analysis → Negotiation",intel:"340T/yr, wants 95% diversion SLA",notes:"Highest win probability — close this month"},
+  ];
+  save('pipeline');save('renewals');save('territory');save('activity');
+}
+
+// ── TAB NAVIGATION ─────────────────────────────────────────────────────────
+function showTab(name){
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t=>{if(t.textContent.toLowerCase().includes(name.slice(0,4))||t.getAttribute('onclick').includes(name))t.classList.add('active');});
+  render(name);
+}
+
+// ── HELPERS ────────────────────────────────────────────────────────────────
+function fmt$(v){return'$'+Number(v||0).toLocaleString('en-NZ',{maximumFractionDigits:0});}
+function fmtDate(d){if(!d)return'—';const dt=new Date(d);return dt.toLocaleDateString('en-NZ',{day:'2-digit',month:'short',year:'numeric'});}
+function daysDiff(d){if(!d)return null;return Math.round((new Date(d)-new Date())/86400000);}
+function stageBadge(s){
+  if(s==='Closed Won')return`<span class="badge badge-green">${s}</span>`;
+  if(s==='Closed Lost')return`<span class="badge badge-red">${s}</span>`;
+  if(['Negotiation/Review','Proposal/Price Quote'].includes(s))return`<span class="badge badge-amber">${s}</span>`;
+  if(['Value Proposition','Needs Analysis'].includes(s))return`<span class="badge badge-blue">${s}</span>`;
+  return`<span class="badge badge-muted">${s}</span>`;
+}
+function statusBadge(s){
+  if(['Closed Won','In Pipeline','In Conversation','Negotiation'].includes(s))return`<span class="badge badge-green">${s}</span>`;
+  if(['Meeting Booked','Contacted'].includes(s))return`<span class="badge badge-blue">${s}</span>`;
+  if(['Closed Lost'].includes(s))return`<span class="badge badge-red">${s}</span>`;
+  return`<span class="badge badge-muted">${s}</span>`;
+}
+function tierScore(r){return+(r.vol*.3+r.revenue*.3+r.timing*.2+r.esg*.1+r.rel*.1).toFixed(1);}
+function tierLabel(score){return score>=8?'Tier 1 🔥':score>=6?'Tier 2 🟡':'Tier 3 ⚪';}
+function sel(arr,val=''){return arr.map(a=>`<option value="${a}"${a===val?' selected':''}>${a}</option>`).join('');}
+function inp(id,val='',type='text',ph=''){return`<input id="${id}" type="${type}" value="${val||''}" placeholder="${ph}">`;}
+function scoreColor(v){return v>=8?'score-high':v>=6?'score-mid':'score-low';}
+
+// ── RENDER DASHBOARD ───────────────────────────────────────────────────────
+function renderDashboard(){
+  const pl=state.pipeline.filter(r=>r.stage!=='Closed Lost'&&r.stage!=='Closed Won');
+  const totalPipeline=pl.reduce((s,r)=>s+(+r.dealValue||0),0);
+  const weightedForecast=pl.reduce((s,r)=>s+(+r.dealValue||0)*(STAGE_PROB[r.stage]||0)/100,0);
+  const urgentRenewals=state.renewals.filter(r=>{const d=daysDiff(r.expiry);return d!==null&&d<=90&&d>=0;}).length;
+  const thisWeekKPIs=state.kpis[state.kpis.length-1];
+  const weekCalls=thisWeekKPIs?thisWeekKPIs.callsActual||0:0;
+  const revMTD=state.kpis.slice(-4).reduce((s,k)=>s+(+k.revenue||0),0);
+
+  document.getElementById('dash-cards').innerHTML=`
+    <div class="card teal"><div class="card-label">Total Pipeline</div><div class="card-value">${fmt$(totalPipeline)}</div></div>
+    <div class="card purple"><div class="card-label">Weighted Forecast</div><div class="card-value">${fmt$(weightedForecast)}</div></div>
+    <div class="card green"><div class="card-label">Active Opps</div><div class="card-value">${pl.length}</div></div>
+    <div class="card red"><div class="card-label">Urgent Renewals</div><div class="card-value">${urgentRenewals}</div></div>
+    <div class="card amber"><div class="card-label">Last Week Calls</div><div class="card-value">${weekCalls}</div></div>
+    <div class="card blue"><div class="card-label">Revenue MTD</div><div class="card-value">${fmt$(revMTD)}</div></div>
+  `;
+
+  // Pipeline by stage
+  const stageCounts={};SF_STAGES.forEach(s=>{stageCounts[s]={count:0,value:0};});
+  state.pipeline.forEach(r=>{if(stageCounts[r.stage]){stageCounts[r.stage].count++;stageCounts[r.stage].value+=(+r.dealValue||0);}});
+  document.getElementById('dash-stages').innerHTML=SF_STAGES.filter(s=>stageCounts[s].count>0).map(s=>`
+    <div class="stage-row"><span class="stage-name">${stageBadge(s)}</span><span class="stage-val">${stageCounts[s].count} · ${fmt$(stageCounts[s].value)}</span></div>`).join('')||'<div class="empty"><div class="empty-icon">📭</div>No pipeline data yet</div>';
+
+  // Follow-ups
+  const fu=state.pipeline.filter(r=>r.nextAction).sort((a,b)=>new Date(a.nextAction)-new Date(b.nextAction)).slice(0,6);
+  document.getElementById('dash-followups').innerHTML=fu.map(r=>{
+    const d=daysDiff(r.nextAction);const overdue=d<0;
+    return`<div class="follow-row"><div class="follow-acct">${r.account}</div><div class="follow-date ${overdue?'follow-overdue':''}">${overdue?'⚠️ Overdue':'📅'} ${fmtDate(r.nextAction)} · ${r.nextStep||'—'}</div></div>`;
+  }).join('')||'<div class="empty">No follow-ups logged</div>';
+
+  // Renewals
+  const urg=state.renewals.filter(r=>{const d=daysDiff(r.expiry);return d!==null&&d<=180;}).sort((a,b)=>daysDiff(a.expiry)-daysDiff(b.expiry));
+  document.getElementById('dash-renewals').innerHTML=urg.map(r=>{
+    const d=daysDiff(r.expiry);const cls=d<=90?'urgent':d<=180?'window':'early';
+    return`<div class="follow-row"><div class="follow-acct">${r.account} <span class="${cls}">${d<=90?'🔴':'🟡'} ${d}d</span></div><div class="follow-date">${r.provider} · Exp: ${fmtDate(r.expiry)}</div></div>`;
+  }).join('')||'<div class="empty">No urgent renewals</div>';
+
+  // Tiers
+  const tiers={t1:0,t2:0,t3:0};
+  state.territory.forEach(r=>{const s=tierScore(r);if(s>=8)tiers.t1++;else if(s>=6)tiers.t2++;else tiers.t3++;});
+  document.getElementById('dash-tiers').innerHTML=`
+    <div class="stage-row"><span class="stage-name">🔥 Tier 1 (8+) — Work relentlessly</span><span class="stage-val">${tiers.t1} accounts</span></div>
+    <div class="stage-row"><span class="stage-name">🟡 Tier 2 (6-7) — Nurture</span><span class="stage-val">${tiers.t2} accounts</span></div>
+    <div class="stage-row"><span class="stage-name">⚪ Tier 3 (below 6) — Low effort</span><span class="stage-val">${tiers.t3} accounts</span></div>
+  `;
+}
+
+// ── RENDER PIPELINE ────────────────────────────────────────────────────────
+function renderPipeline(){
+  const tbody=document.getElementById('pipeline-body');
+  if(!state.pipeline.length){tbody.innerHTML='<tr><td colspan="13"><div class="empty"><div class="empty-icon">🔥</div>No pipeline entries yet. Add your first opportunity.</div></td></tr>';return;}
+  tbody.innerHTML=state.pipeline.map(r=>{
+    const prob=STAGE_PROB[r.stage]||0;
+    const weighted=(+r.dealValue||0)*prob/100;
+    const daysSince=r.lastContact?Math.round((new Date()-new Date(r.lastContact))/86400000):null;
+    const dsClass=daysSince===null?'':(daysSince>7?'badge-red':daysSince>3?'badge-amber':'badge-green');
+    return`<tr>
+      <td><strong>${r.account}</strong><br><small style="color:var(--muted)">${r.contact||''}</small></td>
+      <td><span class="badge badge-muted">${r.industry||'—'}</span></td>
+      <td>${r.provider||'—'}</td>
+      <td>${r.contractExpiry?`<span class="${(daysDiff(r.contractExpiry)||999)<=180?'badge badge-amber':'badge badge-muted'}">${fmtDate(r.contractExpiry)}</span>`:'—'}</td>
+      <td><span class="badge badge-teal">${r.service||'—'}</span></td>
+      <td>${stageBadge(r.stage)}</td>
+      <td><strong style="color:${prob>=70?'var(--green)':prob>=40?'var(--amber)':'var(--red)'}">${prob}%</strong></td>
+      <td><strong>${fmt$(r.dealValue)}</strong></td>
+      <td style="color:var(--teal);font-weight:700">${fmt$(weighted)}</td>
+      <td>${fmtDate(r.closeDate)}</td>
+      <td>${daysSince!==null?`<span class="badge ${dsClass}">${daysSince}d</span>`:'—'}</td>
+      <td style="max-width:160px">${r.nextStep||'—'}</td>
+      <td><div class="actions">
+        <button class="btn btn-secondary btn-sm" onclick="editEntry('pipeline','${r.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEntry('pipeline','${r.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER RENEWALS ────────────────────────────────────────────────────────
+function renderRenewals(){
+  const tbody=document.getElementById('renewals-body');
+  if(!state.renewals.length){tbody.innerHTML='<tr><td colspan="11"><div class="empty"><div class="empty-icon">🔄</div>No renewals tracked yet.</div></td></tr>';return;}
+  tbody.innerHTML=state.renewals.map(r=>{
+    const d=daysDiff(r.expiry);
+    const wTxt=d===null?'Unknown':d<=0?'⛔ EXPIRED':d<=90?'🔴 ACT NOW':d<=180?'🟡 IN WINDOW':'⚪ TOO EARLY';
+    const wClass=d!==null&&d<=90?'urgent':d!==null&&d<=180?'window':'early';
+    return`<tr>
+      <td><strong>${r.account}</strong></td>
+      <td><span class="badge badge-red">${r.provider}</span></td>
+      <td>${fmt$(r.value)}</td>
+      <td>${fmtDate(r.expiry)}</td>
+      <td><strong class="${wClass}">${d!==null?d+'d':'—'}</strong></td>
+      <td><strong class="${wClass}">${wTxt}</strong></td>
+      <td>${r.contact||'—'}</td>
+      <td>${statusBadge(r.status)}</td>
+      <td style="color:var(--teal);font-weight:700">${fmt$(r.ourProposal)}</td>
+      <td style="max-width:180px;color:var(--muted);font-style:italic">${r.notes||'—'}</td>
+      <td><div class="actions">
+        <button class="btn btn-secondary btn-sm" onclick="editEntry('renewals','${r.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEntry('renewals','${r.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER ACTIVITY ────────────────────────────────────────────────────────
+function renderActivity(){
+  const tbody=document.getElementById('activity-body');
+  if(!state.activity.length){tbody.innerHTML='<tr><td colspan="10"><div class="empty"><div class="empty-icon">📞</div>No activities logged yet.</div></td></tr>';return;}
+  const sorted=[...state.activity].sort((a,b)=>new Date(b.date)-new Date(a.date));
+  tbody.innerHTML=sorted.map(r=>`<tr>
+    <td>${fmtDate(r.date)}</td>
+    <td><strong>${r.account}</strong></td>
+    <td>${r.contact||'—'}</td>
+    <td><span class="badge badge-purple">${r.type}</span></td>
+    <td style="max-width:160px">${r.purpose||'—'}</td>
+    <td style="max-width:160px">${r.outcome||'—'}</td>
+    <td>${fmtDate(r.followup)}</td>
+    <td><span class="badge ${r.sfLogged==='Yes'?'badge-green':r.sfLogged==='No'?'badge-red':'badge-amber'}">${r.sfLogged||'—'}</span></td>
+    <td style="max-width:160px;font-style:italic;color:var(--muted)">${r.intel||'—'}</td>
+    <td><div class="actions">
+      <button class="btn btn-secondary btn-sm" onclick="editEntry('activity','${r.id}')">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteEntry('activity','${r.id}')">🗑</button>
+    </div></td>
+  </tr>`).join('');
+}
+
+// ── RENDER TERRITORY ───────────────────────────────────────────────────────
+function renderTerritory(){
+  const tbody=document.getElementById('territory-body');
+  if(!state.territory.length){tbody.innerHTML='<tr><td colspan="13"><div class="empty"><div class="empty-icon">🗺️</div>No territory accounts yet.</div></td></tr>';return;}
+  const sorted=[...state.territory].sort((a,b)=>tierScore(b)-tierScore(a));
+  tbody.innerHTML=sorted.map(r=>{
+    const s=tierScore(r);
+    const sc=r=>`<span class="${scoreColor(r)}">${r}</span>`;
+    return`<tr>
+      <td><strong>${r.account}</strong></td>
+      <td><span class="badge badge-muted">${r.industry||'—'}</span></td>
+      <td>${r.area||'—'}</td>
+      <td>${fmt$(r.estValue)}</td>
+      <td>${sc(r.vol)}</td><td>${sc(r.revenue)}</td><td>${sc(r.timing)}</td><td>${sc(r.esg)}</td><td>${sc(r.rel)}</td>
+      <td><strong class="${scoreColor(s)}" style="font-size:15px">${s}</strong></td>
+      <td><strong class="${s>=8?'score-high':s>=6?'score-mid':'score-low'}">${tierLabel(s)}</strong></td>
+      <td>${statusBadge(r.status)}</td>
+      <td><div class="actions">
+        <button class="btn btn-secondary btn-sm" onclick="editEntry('territory','${r.id}')">✏️</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteEntry('territory','${r.id}')">🗑</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+// ── RENDER KPIS ────────────────────────────────────────────────────────────
+function renderKPIs(){
+  const tbody=document.getElementById('kpis-body');
+  if(!state.kpis.length){tbody.innerHTML='<tr><td colspan="11"><div class="empty"><div class="empty-icon">🎯</div>No KPIs logged yet.</div></td></tr>';}
+  else{
+    const sorted=[...state.kpis].sort((a,b)=>new Date(b.weekOf)-new Date(a.weekOf));
+    tbody.innerHTML=sorted.map(r=>{
+      const callAtt=r.callsTarget?Math.round((r.callsActual||0)/(r.callsTarget)*100):0;
+      const meetAtt=r.meetingsTarget?Math.round((r.meetingsActual||0)/(r.meetingsTarget)*100):0;
+      const attainment=r.callsTarget?Math.round(((r.callsActual||0)/r.callsTarget)*100):0;
+      const attColor=attainment>=100?'var(--green)':attainment>=80?'var(--amber)':'var(--red)';
+      return`<tr>
+        <td>${fmtDate(r.weekOf)}</td>
+        <td>${r.callsTarget||25}</td>
+        <td><strong style="color:${callAtt>=100?'var(--green)':callAtt>=80?'var(--amber)':'var(--red)'}">${r.callsActual||'—'}</strong></td>
+        <td>${r.meetingsTarget||5}</td>
+        <td><strong style="color:${meetAtt>=100?'var(--green)':meetAtt>=80?'var(--amber)':'var(--red)'}">${r.meetingsActual||'—'}</strong></td>
+        <td>${r.audits||0}</td>
+        <td>${r.proposals||0}</td>
+        <td>${r.signed||0}</td>
+        <td>${fmt$(r.revenue)}</td>
+        <td><strong style="color:${attColor}">${attainment}%</strong>
+          <div class="progress"><div class="progress-bar" style="width:${Math.min(attainment,100)}%;background:${attColor}"></div></div>
+        </td>
+        <td><div class="actions">
+          <button class="btn btn-secondary btn-sm" onclick="editEntry('kpis','${r.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteEntry('kpis','${r.id}')">🗑</button>
+        </div></td>
+      </tr>`;
+    }).join('');
+  }
+  // Summary cards
+  const totalCalls=state.kpis.reduce((s,k)=>s+(+k.callsActual||0),0);
+  const totalMeets=state.kpis.reduce((s,k)=>s+(+k.meetingsActual||0),0);
+  const totalRev=state.kpis.reduce((s,k)=>s+(+k.revenue||0),0);
+  const totalSigned=state.kpis.reduce((s,k)=>s+(+k.signed||0),0);
+  document.getElementById('kpi-summary').innerHTML=`
+    <div class="kpi-card"><div class="kpi-label">Total Calls Logged</div><div class="kpi-val" style="color:var(--teal)">${totalCalls}</div><div class="kpi-sub">All time</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Meetings</div><div class="kpi-val" style="color:var(--blue)">${totalMeets}</div><div class="kpi-sub">All time</div></div>
+    <div class="kpi-card"><div class="kpi-label">Total Revenue Closed</div><div class="kpi-val" style="color:var(--green)">${fmt$(totalRev)}</div><div class="kpi-sub">All time</div></div>
+    <div class="kpi-card"><div class="kpi-label">Contracts Signed</div><div class="kpi-val" style="color:var(--amber)">${totalSigned}</div><div class="kpi-sub">All time</div></div>
+  `;
+}
+
+// ── RENDER SPI ─────────────────────────────────────────────────────────────
+function renderSPI(){
+  const monthly=+(document.getElementById('cfg-monthly')?.value||0);
+  const tbody=document.getElementById('spi-body');
+  let running=0;
+  tbody.innerHTML=state.spi.map((r,i)=>{
+    const target=monthly;
+    const actual=+r.actual||0;
+    const variance=actual-target;
+    const attain=target>0?Math.round(actual/target*100):0;
+    const pipe=+r.pipeline||0;
+    const coverage=target>0?(pipe/target).toFixed(1)+'x':'—';
+    running+=actual;
+    const attColor=attain>=100?'var(--green)':attain>=80?'var(--amber)':attain>0?'var(--red)':'var(--muted)';
+    const varColor=variance>=0?'var(--green)':'var(--red)';
+    const covNum=target>0?pipe/target:0;
+    const covColor=covNum>=3?'var(--green)':covNum>=1.5?'var(--amber)':'var(--red)';
+    return`<tr>
+      <td><strong>${r.month}</strong></td>
+      <td>${target?fmt$(target):'<span style="color:var(--muted)">Set target above</span>'}</td>
+      <td><input type="number" value="${actual}" style="width:100px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text)" onchange="updateSPI('${r.id}','actual',this.value)"></td>
+      <td><strong style="color:${varColor}">${variance>=0?'+':''}${fmt$(variance)}</strong></td>
+      <td><strong style="color:${attColor}">${attain}%</strong></td>
+      <td><input type="number" value="${r.deals||0}" style="width:60px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text)" onchange="updateSPI('${r.id}','deals',this.value)"></td>
+      <td><input type="number" value="${pipe}" style="width:110px;background:var(--surface2);border:1px solid var(--border);border-radius:6px;padding:4px 8px;color:var(--text)" onchange="updateSPI('${r.id}','pipeline',this.value)"></td>
+      <td><strong style="color:${covColor}">${coverage}</strong></td>
+      <td><strong style="color:var(--teal)">${fmt$(running)}</strong></td>
+    </tr>`;
+  }).join('');
+}
+
+function updateSPI(id,field,val){
+  const r=state.spi.find(s=>s.id===id);
+  if(r){r[field]=+val;save('spi');renderSPI();}
+}
+
+// ── RENDER ROUTER ──────────────────────────────────────────────────────────
+function render(tab){
+  if(tab==='dashboard')renderDashboard();
+  else if(tab==='pipeline')renderPipeline();
+  else if(tab==='renewals')renderRenewals();
+  else if(tab==='activity')renderActivity();
+  else if(tab==='territory')renderTerritory();
+  else if(tab==='kpis')renderKPIs();
+  else if(tab==='spi')renderSPI();
+}
+
+// ── MODAL FORMS ────────────────────────────────────────────────────────────
+const FORMS={
+pipeline:`<div class="form-grid">
+  <div class="form-group"><label>Account Name</label><input id="f-account" type="text" placeholder="Company name"></div>
+  <div class="form-group"><label>Contact Name</label><input id="f-contact" type="text"></div>
+  <div class="form-group"><label>Contact Title</label><input id="f-contactTitle" type="text"></div>
+  <div class="form-group"><label>Phone</label><input id="f-phone" type="text"></div>
+  <div class="form-group span2"><label>Email</label><input id="f-email" type="email"></div>
+  <div class="form-group"><label>Industry</label><select id="f-industry"><option value="">Select...</option>INDUSTRIES</select></div>
+  <div class="form-group"><label>Lead Source</label><select id="f-leadSource"><option value="">Select...</option>LEADSOURCES</select></div>
+  <div class="form-group"><label>Current Provider</label><select id="f-provider"><option value="">Select...</option>PROVIDERS</select></div>
+  <div class="form-group"><label>Contract Expiry</label><input id="f-contractExpiry" type="date"></div>
+  <div class="form-group"><label>Service Type</label><select id="f-service"><option value="">Select...</option>SERVICES</select></div>
+  <div class="form-group"><label>Sites / Bins</label><input id="f-sites" type="number"></div>
+  <div class="form-group"><label>Waste Vol (T/yr)</label><input id="f-wasteVol" type="number"></div>
+  <div class="form-group"><label>SF Stage</label><select id="f-stage"><option value="">Select...</option>STAGES</select></div>
+  <div class="form-group"><label>Close Date</label><input id="f-closeDate" type="date"></div>
+  <div class="form-group"><label>Deal Value (NZD)</label><input id="f-dealValue" type="number"></div>
+  <div class="form-group"><label>Last Contact Date</label><input id="f-lastContact" type="date"></div>
+  <div class="form-group"><label>Next Action Date</label><input id="f-nextAction" type="date"></div>
+  <div class="form-group span2"><label>Next Step</label><input id="f-nextStep" type="text"></div>
+  <div class="form-group span2"><label>Strategy Notes (not for Salesforce)</label><textarea id="f-strategyNotes"></textarea></div>
+</div>`,
+renewals:`<div class="form-grid">
+  <div class="form-group"><label>Account Name</label><input id="f-account" type="text"></div>
+  <div class="form-group"><label>Current Provider</label><select id="f-provider"><option value="">Select...</option>PROVIDERS</select></div>
+  <div class="form-group"><label>Contract Value (NZD)</label><input id="f-value" type="number"></div>
+  <div class="form-group"><label>Contract Start</label><input id="f-start" type="date"></div>
+  <div class="form-group"><label>Contract Expiry</label><input id="f-expiry" type="date"></div>
+  <div class="form-group"><label>Key Contact</label><input id="f-contact" type="text"></div>
+  <div class="form-group"><label>Status</label><select id="f-status"><option value="">Select...</option>STATUSESR</select></div>
+  <div class="form-group"><label>Our Proposal Value (NZD)</label><input id="f-ourProposal" type="number"></div>
+  <div class="form-group span2"><label>Notes</label><textarea id="f-notes"></textarea></div>
+</div>`,
+activity:`<div class="form-grid">
+  <div class="form-group"><label>Date</label><input id="f-date" type="date"></div>
+  <div class="form-group"><label>Account Name</label><input id="f-account" type="text"></div>
+  <div class="form-group"><label>Contact Name</label><input id="f-contact" type="text"></div>
+  <div class="form-group"><label>Activity Type</label><select id="f-type"><option value="">Select...</option>ACTTYPES</select></div>
+  <div class="form-group span2"><label>Purpose</label><input id="f-purpose" type="text"></div>
+  <div class="form-group span2"><label>Outcome</label><input id="f-outcome" type="text"></div>
+  <div class="form-group"><label>Follow-up Date</label><input id="f-followup" type="date"></div>
+  <div class="form-group"><label>SF Logged?</label><select id="f-sfLogged"><option>No</option><option>Yes</option><option>Pending</option></select></div>
+  <div class="form-group span2"><label>Stage Impact</label><input id="f-stageImpact" type="text" placeholder="e.g. Qualification → Needs Analysis"></div>
+  <div class="form-group span2"><label>Waste Intel Gathered</label><textarea id="f-intel" placeholder="Volume, service type, incumbent weaknesses..."></textarea></div>
+  <div class="form-group span2"><label>Notes</label><textarea id="f-notes"></textarea></div>
+</div>`,
+territory:`<div class="form-grid">
+  <div class="form-group"><label>Account Name</label><input id="f-account" type="text"></div>
+  <div class="form-group"><label>Industry</label><select id="f-industry"><option value="">Select...</option>INDUSTRIES</select></div>
+  <div class="form-group"><label>Area / Suburb</label><input id="f-area" type="text"></div>
+  <div class="form-group"><label>Account Type</label><select id="f-type"><option>Enterprise</option><option>Mid-Market</option><option>Government</option><option>SME</option></select></div>
+  <div class="form-group"><label>Est. Annual Value (NZD)</label><input id="f-estValue" type="number"></div>
+  <div class="form-group"><label>Status</label><select id="f-status"><option value="">Select...</option>STATUSEST</select></div>
+  <div class="form-group span2" style="background:var(--surface2);border-radius:8px;padding:12px;margin-top:4px">
+    <label style="color:var(--teal);font-size:12px">SCORING FACTORS (1-10)</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr 1fr 1fr;gap:12px;margin-top:10px">
+      <div class="form-group"><label>Waste Volume</label><input id="f-vol" type="number" min="1" max="10" value="5"></div>
+      <div class="form-group"><label>Rev Potential</label><input id="f-revenue" type="number" min="1" max="10" value="5"></div>
+      <div class="form-group"><label>Contract Timing</label><input id="f-timing" type="number" min="1" max="10" value="5"></div>
+      <div class="form-group"><label>ESG Priority</label><input id="f-esg" type="number" min="1" max="10" value="5"></div>
+      <div class="form-group"><label>Relationship</label><input id="f-rel" type="number" min="1" max="10" value="5"></div>
+    </div>
+  </div>
+</div>`,
+kpis:`<div class="form-grid">
+  <div class="form-group"><label>Week Commencing</label><input id="f-weekOf" type="date"></div>
+  <div class="form-group"><label>Calls Target</label><input id="f-callsTarget" type="number" value="25"></div>
+  <div class="form-group"><label>Calls Actual</label><input id="f-callsActual" type="number"></div>
+  <div class="form-group"><label>Meetings Target</label><input id="f-meetingsTarget" type="number" value="5"></div>
+  <div class="form-group"><label>Meetings Actual</label><input id="f-meetingsActual" type="number"></div>
+  <div class="form-group"><label>Site Audits</label><input id="f-audits" type="number" value="0"></div>
+  <div class="form-group"><label>Proposals Sent</label><input id="f-proposals" type="number" value="0"></div>
+  <div class="form-group"><label>Contracts Signed</label><input id="f-signed" type="number" value="0"></div>
+  <div class="form-group"><label>Revenue Closed (NZD)</label><input id="f-revenue" type="number" value="0"></div>
+  <div class="form-group"><label>New Accounts Added</label><input id="f-newAccounts" type="number" value="0"></div>
+</div>`
+};
+
+function buildForm(type,data){
+  let html=FORMS[type]||'';
+  html=html.replace('INDUSTRIES',sel(INDUSTRIES,data?.industry))
+           .replace('LEADSOURCES',sel(LEAD_SOURCES,data?.leadSource))
+           .replace('PROVIDERS',sel(PROVIDERS,data?.provider))
+           .replace('SERVICES',sel(SERVICES,data?.service))
+           .replace('STAGES',sel(SF_STAGES,data?.stage))
+           .replace('STATUSESR',sel(STATUSES_R,data?.status))
+           .replace('STATUSEST',sel(STATUSES_T,data?.status))
+           .replace('ACTTYPES',sel(ACT_TYPES,data?.type));
+  return html;
+}
+
+function openModal(type,data){
+  currentModal=type;
+  document.getElementById('modal-title').textContent=data?'Edit Entry':'Add '+type.charAt(0).toUpperCase()+type.slice(1);
+  document.getElementById('modal-body').innerHTML=buildForm(type,data);
+  if(data){
+    Object.keys(data).forEach(k=>{
+      const el=document.getElementById('f-'+k);
+      if(el)el.value=data[k]||'';
+    });
+  }
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+function closeModal(){document.getElementById('modal-overlay').classList.remove('open');editMode=null;editId=null;}
+function closeModalOutside(e){if(e.target===document.getElementById('modal-overlay'))closeModal();}
+
+function getFormData(type){
+  const g=id=>document.getElementById('f-'+id)?.value||'';
+  const gn=id=>+document.getElementById('f-'+id)?.value||0;
+  if(type==='pipeline')return{account:g('account'),contact:g('contact'),contactTitle:g('contactTitle'),phone:g('phone'),email:g('email'),industry:g('industry'),leadSource:g('leadSource'),provider:g('provider'),contractExpiry:g('contractExpiry'),service:g('service'),sites:gn('sites'),wasteVol:gn('wasteVol'),stage:g('stage'),closeDate:g('closeDate'),dealValue:gn('dealValue'),lastContact:g('lastContact'),nextAction:g('nextAction'),nextStep:g('nextStep'),strategyNotes:g('strategyNotes')};
+  if(type==='renewals')return{account:g('account'),provider:g('provider'),value:gn('value'),start:g('start'),expiry:g('expiry'),contact:g('contact'),status:g('status'),ourProposal:gn('ourProposal'),notes:g('notes')};
+  if(type==='activity')return{date:g('date'),account:g('account'),contact:g('contact'),type:g('type'),purpose:g('purpose'),outcome:g('outcome'),followup:g('followup'),sfLogged:g('sfLogged'),stageImpact:g('stageImpact'),intel:g('intel'),notes:g('notes')};
+  if(type==='territory')return{account:g('account'),industry:g('industry'),area:g('area'),type:g('type'),estValue:gn('estValue'),status:g('status'),vol:gn('vol'),revenue:gn('revenue'),timing:gn('timing'),esg:gn('esg'),rel:gn('rel')};
+  if(type==='kpis')return{weekOf:g('weekOf'),callsTarget:gn('callsTarget'),callsActual:gn('callsActual'),meetingsTarget:gn('meetingsTarget'),meetingsActual:gn('meetingsActual'),audits:gn('audits'),proposals:gn('proposals'),signed:gn('signed'),revenue:gn('revenue'),newAccounts:gn('newAccounts')};
+}
+
+function saveEntry(){
+  const data=getFormData(currentModal);
+  if(!data)return;
+  if(editMode){
+    const idx=state[currentModal].findIndex(r=>r.id===editId);
+    if(idx>-1){state[currentModal][idx]={...state[currentModal][idx],...data};}
+  }else{
+    state[currentModal].unshift({id:uid(),...data});
+  }
+  save(currentModal);closeModal();render(currentModal);render('dashboard');
+}
+
+function editEntry(type,id){
+  const r=state[type].find(x=>x.id===id);
+  if(!r)return;
+  editMode=type;editId=id;
+  openModal(type,r);
+}
+
+function deleteEntry(type,id){
+  if(!confirm('Delete this entry?'))return;
+  state[type]=state[type].filter(r=>r.id!==id);
+  save(type);render(type);render('dashboard');
+}
+
+// ── INIT ───────────────────────────────────────────────────────────────────
+load();
+renderDashboard();
+</script>
+</body>
+</html>
